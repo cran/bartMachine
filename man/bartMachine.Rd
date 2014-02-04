@@ -1,4 +1,5 @@
-\name{build_bart_machine}
+\name{bartMachine}
+\alias{bartMachine}
 \alias{build_bart_machine}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Build a BART Model}
@@ -6,6 +7,27 @@
 Builds a BART model for regression or classification.
 }
 \usage{
+bartMachine(X = NULL, y = NULL, Xy = NULL, 
+num_trees = 50, 
+num_burn_in = 250, 
+num_iterations_after_burn_in = 1000, 
+alpha = 0.95, beta = 2, k = 2, q = 0.9, nu = 3, 
+prob_rule_class = 0.5, 
+mh_prob_steps = c(2.5, 2.5, 4)/9,
+debug_log = FALSE, 
+run_in_sample = TRUE,  
+s_sq_y = "mse",
+cov_prior_vec = NULL, 
+use_missing_data = FALSE, 
+covariates_to_permute = NULL,
+num_rand_samps_in_library = 10000, 
+use_missing_data_dummies_as_covars = FALSE, 
+replace_missing_data_with_x_j_bar = FALSE,
+impute_missingness_with_rf_impute = FALSE,
+impute_missingness_with_x_j_bar_for_lm = TRUE, 
+mem_cache_for_speed = TRUE,
+verbose = TRUE)
+
 build_bart_machine(X = NULL, y = NULL, Xy = NULL, 
 num_trees = 50, 
 num_burn_in = 250, 
@@ -133,7 +155,7 @@ Returns an object of class ``bartMachine''. Note that this object persists in th
   \item{PseudoRsq}{Calculated as 1 - SSE / SST where SSE is the sum of square errors in the training data and SST is the sample variance of the response times \eqn{n-1}. Only returned if \code{run_in_sample = TRUE}.}
   \item{rmse_train}{Root mean square error on the training set. Only returned if \code{run_in_sample = TRUE}.}
         
-Additionally, the parameters passed to the function \code{build_bart_machine} are also components of the list. 
+Additionally, the parameters passed to the function \code{bartMachine} are also components of the list. 
 }
 \references{
 HA Chipman, EI George, and RE McCulloch. BART: Bayesian Additive Regressive Trees.
@@ -158,7 +180,7 @@ independent MCMC chain of size \cr
 
 \seealso{
 \code{\link{destroy_bart_machine}},
-\code{\link{build_bart_machine_cv}}
+\code{\link{bartMachineCV}}
 }
 \examples{
 ##regression example
@@ -171,7 +193,7 @@ X = data.frame(matrix(runif(n * p), ncol = p))
 y = 10 * sin(pi* X[ ,1] * X[,2]) +20 * (X[,3] -.5)^2 + 10 * X[ ,4] + 5 * X[,5] + rnorm(n)
 
 ##build BART regression model
-bart_machine = build_bart_machine(X, y)
+bart_machine = bartMachine(X, y)
 summary(bart_machine)
 
 #destroy BART model
@@ -179,7 +201,7 @@ destroy_bart_machine(bart_machine)
 
 \dontrun{
 ##Build another BART regression model
-bart_machine = build_bart_machine(X,y, num_trees = 200, num_burn_in = 500,
+bart_machine = bartMachine(X,y, num_trees = 200, num_burn_in = 500,
 num_iterations_after_burn_in =1000)
 
 #Destroy BART model

@@ -1,5 +1,5 @@
-BART_MAX_MEM_MB_DEFAULT = 1500
-BART_NUM_CORES_DEFAULT = 1
+BART_MAX_MEM_MB_DEFAULT = 1100 #1.1GB is the most a 32bit machine can give without throwing an error or crashing
+BART_NUM_CORES_DEFAULT = 1 #Stay conservative as a default
 
 ##build a BART model
 build_bart_machine = function(X = NULL, y = NULL, Xy = NULL, 
@@ -28,20 +28,27 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 		mem_cache_for_speed = TRUE,
 		verbose = TRUE){
 	
-	cat("BART initialized with", num_trees, "trees. ")
+	if (verbose){
+		cat("bartMachine initializing with", num_trees, "trees...\n")	
+	}	
 	t0 = Sys.time()
 	
-	#immediately initialize Java (if it has not already been initialized with a custom amount of memory)
-	#if it has already been initialized, running this function has no effect so no need for an if (initialized?) statement
-	init_java_for_bart_machine_with_mem_in_mb(BART_MAX_MEM_MB_DEFAULT)
+	#immediately initialize Java (if it has not already been initialized) with a custom amount of memory
+	if (!exists("JVM_INITIALIZED", envir = bartMachine_globals)){
+		init_java_for_bart_machine_with_mem_in_mb(BART_MAX_MEM_MB_DEFAULT)
+	}
 	
 	if (use_missing_data_dummies_as_covars && replace_missing_data_with_x_j_bar){
 		stop("You cannot impute by averages and use missing data as dummies simultaneously.")
 	}
 	
 	if ((is.null(X) && is.null(Xy)) || is.null(y) && is.null(Xy)){
-		stop("You need to give BART a training set either by specifying X and y or by specifying a matrix Xy which contains the response named \"y.\"\n")
+		stop("You need to give bartMachine a training set either by specifying X and y or by specifying a matrix Xy which contains the response named \"y.\"\n")
 	} else if (is.null(X) && is.null(y)){ #they specified Xy, so now just pull out X,y
+		#first ensure it's a dataframe
+		if (class(Xy) != "data.frame"){
+			stop(paste("The training data Xy must be a data frame."), call. = FALSE)	
+		}
 		y = Xy[, ncol(Xy)]
 		for (cov in 1 : (ncol(Xy) - 1)){
 			if (colnames(Xy)[cov] == ""){
@@ -68,7 +75,7 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 		y_remaining = y
 		pred_type = "regression"
 		if (class(y) == "integer"){
-			cat("Warning: The response y is integer, BART will run regression.\n")
+			cat("Warning: The response y is integer, bartMachine will run regression.\n")
 		}
 	} else if (class(y) == "factor" & length(y_levels) == 2){ #if y is a factor and binary
 		java_bart_machine = .jnew("bartMachine.bartMachineClassificationMultThread")
@@ -139,25 +146,42 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 	} else if (replace_missing_data_with_x_j_bar){
 		X = imputeMatrixByXbarjContinuousOrModalForBinary(X, X)
 		if (verbose){
-			cat("Imputed missing data using attribute averages. ")
+			cat("Imputed missing data using attribute averages.\n")
 		}
 	}	
 
-	model_matrix_training_data = cbind(pre_process_training_data(X, use_missing_data_dummies_as_covars, rf_imputations_for_missing), y_remaining)
+	pre_process_obj = pre_process_training_data(X, use_missing_data_dummies_as_covars, rf_imputations_for_missing)
+	model_matrix_training_data = cbind(pre_process_obj$data, y_remaining)
+	p = ncol(model_matrix_training_data) - 1 # we subtract one because we tacked on the response as the last column
+	factor_lengths = pre_process_obj$factor_lengths
+	
+	#now create a default cov_prior_vec that factors in the levels of the factors
+	if (is.null(cov_prior_vec) && length(factor_lengths) > 0){
+		#begin with the uniform
+		cov_prior_vec = rep(1, p)
+		j_factor_begin = p - sum(factor_lengths) + 1
+		for (l in 1 : length(factor_lengths)){
+			factor_length = factor_lengths[l]
+			cov_prior_vec[j_factor_begin : (j_factor_begin + factor_length - 1)] = 1 / factor_length
+			j_factor_begin = j_factor_begin + factor_length
+		}
+	}
 
 	#this is a private parameter ONLY called by cov_importance_test
 	if (!is.null(covariates_to_permute)){
+		#first check if these covariates are even in the matrix to begin with
 		for (cov in covariates_to_permute){
 			if (!(cov %in% colnames(model_matrix_training_data)) && class(cov) == "character"){
 				stop("Covariate \"", cov, "\" not found in design matrix.")
 			}
-			model_matrix_training_data[, cov] = sample(model_matrix_training_data[, cov])
 		}
+		permuted_order = sample(1 : nrow(model_matrix_training_data), nrow(model_matrix_training_data))
+		model_matrix_training_data[, covariates_to_permute] = model_matrix_training_data[permuted_order, covariates_to_permute]
 	}
 	
 	#now set whether we want the program to log to a file
 	if (debug_log & verbose){
-		cat("warning: printing out the log file will slow down the runtime significantly\n")
+		cat("warning: printing out the log file will slow down the runtime significantly.\n")
 		.jcall(java_bart_machine, "V", "writeStdOutToLogFile")
 	}
 	#set whether we want there to be tree illustrations
@@ -169,7 +193,7 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 	#set the std deviation of y to use
 	if (ncol(model_matrix_training_data) - 1 >= nrow(model_matrix_training_data)){
 		if (verbose){
-			cat("warning: cannot use MSE of linear model for s_sq_y if p > n. BART will use sample var(y) instead.\n")
+			cat("warning: cannot use MSE of linear model for s_sq_y if p > n. bartMachine will use sample var(y) instead.\n")
 		}
 		s_sq_y = "var"
 		
@@ -252,7 +276,7 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 	
 	#build the bart machine and let the user know what type of BART this is
 	if (verbose){
-		cat("\nNow building bartMachine for", pred_type, "...")
+		cat("Now building bartMachine for", pred_type, "...")
 		if (length(cov_prior_vec) != 0){
 			cat("Covariate importance prior ON. ")
 		}
@@ -270,7 +294,7 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 	.jcall(java_bart_machine, "V", "Build")
 	
 	#now once it's done, let's extract things that are related to diagnosing the build of the BART model
-	p = ncol(model_matrix_training_data) - 1 # we subtract one because we tacked on the response as the last column
+	
 	bart_machine = list(java_bart_machine = java_bart_machine,
 			training_data_features = colnames(model_matrix_training_data)[1 : ifelse(use_missing_data && use_missing_data_dummies_as_covars, (p / 2), p)],
 			training_data_features_with_missing_features = colnames(model_matrix_training_data)[1 : p], #always return this even if there's no missing features
@@ -367,7 +391,7 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 ##private function that creates a duplicate of an existing bartMachine object.
 bart_machine_duplicate = function(bart_machine, X = NULL, y = NULL, cov_prior_vec = NULL, num_trees = NULL, run_in_sample = NULL, covariates_to_permute = NULL, verbose = NULL, ...){
   if (is_bart_destroyed(bart_machine)){
-    stop("This BART machine has been destroyed. Please recreate.")
+    stop("This bartMachine model has been destroyed. Please recreate.")
 	}	
 	if (is.null(X)){
 		X = bart_machine$X
@@ -420,13 +444,28 @@ build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL,
 		num_tree_cvs = c(50, 200),
 		k_cvs = c(2, 3, 5),
 		nu_q_cvs = list(c(3, 0.9), c(3, 0.99), c(10, 0.75)),
-		k_folds = 5, ...){
+		k_folds = 5, 
+		verbose = FALSE,
+		...){
+	
+	if ((is.null(X) && is.null(Xy)) || is.null(y) && is.null(Xy)){
+		stop("You need to give bartMachine a training set either by specifying X and y or by specifying a matrix Xy which contains the response named \"y.\"\n")
+	} else if (is.null(X) && is.null(y)){ #they specified Xy, so now just pull out X,y
+		if (class(Xy) != "data.frame"){
+			stop(paste("The training data Xy must be a data frame."), call. = FALSE)	
+		}
+		y = Xy$y
+		Xy$y = NULL
+		X = Xy
+	}
 	
 	y_levels = levels(y)
 	if (class(y) == "numeric" || class(y) == "integer"){ #if y is numeric, then it's a regression problem
 		pred_type = "regression"
 	} else if (class(y) == "factor" & length(y_levels) == 2){ #if y is a factor and and binary, then it's a classification problem
 		pred_type = "classification"
+	} else { #otherwise throw an error
+		stop("Your response must be either numeric, an integer or a factor with two levels.\n")
 	}
 	
 	if (pred_type == "classification"){
@@ -434,13 +473,7 @@ build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL,
 	}
 	
 	
-	if ((is.null(X) && is.null(Xy)) || is.null(y) && is.null(Xy)){
-		stop("You need to give BART a training set either by specifying X and y or by specifying a matrix Xy which contains the response named \"y.\"\n")
-	} else if (is.null(X) && is.null(y)){ #they specified Xy, so now just pull out X,y
-		y = Xy$y
-		Xy$y = NULL
-		X = Xy
-	}
+
 	
 	min_rmse_num_tree = NULL
 	min_rmse_k = NULL
@@ -453,9 +486,9 @@ build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL,
 		for (nu_q in nu_q_cvs){
 			for (num_trees in num_tree_cvs){
 				if (pred_type == "regression"){
-					cat(paste("  BART CV try: k:", k, "nu, q:", paste(as.numeric(nu_q), collapse = ", "), "m:", num_trees, "\n"))	
+					cat(paste("  bartMachine CV try: k:", k, "nu, q:", paste(as.numeric(nu_q), collapse = ", "), "m:", num_trees, "\n"))	
 				} else {
-					cat(paste("  BART CV try: k:", k, "m:", num_trees, "\n"))
+					cat(paste("  bartMachine CV try: k:", k, "m:", num_trees, "\n"))
 				}
 				
 				k_fold_results = k_fold_cv(X, y, 
@@ -463,7 +496,9 @@ build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL,
 						num_trees = num_trees,
 						k = k,
 						nu = nu_q[1],
-						q = nu_q[2], ...)
+						q = nu_q[2], 
+						verbose = verbose,
+						...)
 				
 				if (pred_type == "regression" && k_fold_results$rmse < min_oos_rmse){
 					min_oos_rmse = k_fold_results$rmse					
@@ -480,9 +515,9 @@ build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL,
 		}
 	}
 	if (pred_type == "regression"){
-		cat(paste("  BART CV win: k:", min_rmse_k, "nu, q:", paste(as.numeric(min_rmse_nu_q), collapse = ", "), "m:", min_rmse_num_tree, "\n"))
+		cat(paste("  bartMachine CV win: k:", min_rmse_k, "nu, q:", paste(as.numeric(min_rmse_nu_q), collapse = ", "), "m:", min_rmse_num_tree, "\n"))
 	} else {
-		cat(paste("  BART CV win: k:", min_rmse_k, "m:", min_rmse_num_tree, "\n"))
+		cat(paste("  bartMachine CV win: k:", min_rmse_k, "m:", min_rmse_num_tree, "\n"))
 	}
 	#now that we've found the best settings, return that bart machine. It would be faster to have kept this around, but doing it this way saves RAM for speed.
 	build_bart_machine(X, y,
