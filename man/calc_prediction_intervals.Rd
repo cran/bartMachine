@@ -9,7 +9,7 @@ Generates prediction intervals for \eqn{\hat{y}} for a specified set of observat
 }
 \usage{
 calc_prediction_intervals(bart_machine, new_data, 
-pi_conf = 0.95, normal_samples_per_gibbs_sample = 100)
+pi_conf = 0.95, num_samples_per_data_point = 1000)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -22,9 +22,8 @@ A data frame containing observations at which prediction intervals for \eqn{\hat
   \item{pi_conf}{
 Confidence level for the prediction intervals. The default is 95\%.
 }
-  \item{normal_samples_per_gibbs_sample}{
-The number of samples taken from the putative error distribution for each Gibbs sample after burn-in (see details).
-The default is 100. 
+  \item{num_samples_per_data_point}{
+The number of samples taken from the predictive distribution. The default is 1000. 
 }
 }
 \details{
@@ -64,7 +63,7 @@ X = data.frame(matrix(runif(n * p), ncol = p))
 y = 10 * sin(pi* X[ ,1] * X[,2]) +20 * (X[,3] -.5)^2 + 10 * X[ ,4] + 5 * X[,5] + rnorm(n)
 
 ##build BART regression model
-bart_machine = build_bart_machine(X, y)
+bart_machine = bartMachine(X, y)
 
 #get prediction interval
 pred_int = calc_prediction_intervals(bart_machine, X)
