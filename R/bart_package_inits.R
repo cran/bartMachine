@@ -1,5 +1,5 @@
 ##package constants
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 
 ##color array 
 COLORS = array(NA, 500)
@@ -30,6 +30,7 @@ set_bart_machine_memory = function(bart_max_mem){
 ##get variable counts
 get_var_counts_over_chain = function(bart_machine, type = "splits"){
 	check_serialization(bart_machine) #ensure the Java object exists and fire an error if not
+
 	if (!(type %in% c("trees", "splits"))){
 		stop("type must be \"trees\" or \"splits\"")
 	}
@@ -41,6 +42,7 @@ get_var_counts_over_chain = function(bart_machine, type = "splits"){
 #get variable inclusion proportions
 get_var_props_over_chain = function(bart_machine, type = "splits"){
 	check_serialization(bart_machine) #ensure the Java object exists and fire an error if not
+	
 	if (!(type %in% c("trees", "splits"))){
 		stop("type must be \"trees\" or \"splits\"")
 	}	

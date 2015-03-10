@@ -72,7 +72,7 @@ public abstract class bartMachine_a_base extends Classifier implements Serializa
 	
 	public void setTotalNumThreads(int num_cores) {
 		this.num_cores = num_cores;
-	}	
+	}
 
 	public void setMemCacheForSpeed(boolean mem_cache_for_speed){
 		this.mem_cache_for_speed = mem_cache_for_speed;

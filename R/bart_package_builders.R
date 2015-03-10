@@ -27,8 +27,9 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 		impute_missingness_with_x_j_bar_for_lm = TRUE,
 		mem_cache_for_speed = TRUE,
 		serialize = FALSE,
+		seed = NULL,
 		verbose = TRUE){
-	
+
 	if (verbose){
 		cat("bartMachine initializing with", num_trees, "trees...\n")	
 	}	
@@ -248,6 +249,13 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 	.jcall(java_bart_machine, "V", "setVerbose", verbose)
 	.jcall(java_bart_machine, "V", "setMemCacheForSpeed", mem_cache_for_speed)
 	
+	if (!is.null(seed)){
+		#set the seed in R
+		set.seed(seed)
+		#set the seed in Java
+		.jcall(java_bart_machine, "V", "setSeed", as.integer(seed))
+	}
+	
 	#now we need to set random samples
 	.jcall(java_bart_machine, "V", "setNormSamples", rnorm(num_rand_samps_in_library))
 	n_plus_hyper_nu = nrow(model_matrix_training_data) + nu	
@@ -333,6 +341,7 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 			serialize = serialize,
 			mem_cache_for_speed = mem_cache_for_speed,
 			debug_log = debug_log,
+			seed = seed,
 			num_rand_samps_in_library = num_rand_samps_in_library
 	)
 	#if the user used a cov prior vec, pass it back
@@ -514,7 +523,7 @@ build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL,
 				}
 				
 				k_fold_results = k_fold_cv(X, y, 
-          k_folds = k_folds,
+          			k_folds = k_folds,
 					folds_vec = folds_vec, ##will hold the cv folds constant 
 					num_trees = num_trees,
 					k = k,

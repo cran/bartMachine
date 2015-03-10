@@ -372,10 +372,10 @@ public class bartMachineRegressionMultThread extends Classifier implements Seria
 			int[] variable_counts_one_gibbs = new int[p];
 			for (bartMachineTreeNode tree : trees){	
 				if (type.equals("splits")){
-					variable_counts_one_gibbs = Tools.add_arrays(variable_counts_one_gibbs, tree.attribute_split_counts);
+					variable_counts_one_gibbs = Tools.add_arrays(variable_counts_one_gibbs, tree.attributeSplitCounts());
 				}
 				else if (type.equals("trees")){
-					variable_counts_one_gibbs = Tools.binary_add_arrays(variable_counts_one_gibbs, tree.attribute_split_counts);
+					variable_counts_one_gibbs = Tools.binary_add_arrays(variable_counts_one_gibbs, tree.attributeSplitCounts());
 				}				
 				
 			}
@@ -557,6 +557,10 @@ public class bartMachineRegressionMultThread extends Classifier implements Seria
 	public void setVerbose(boolean verbose){
 		this.verbose = verbose;
 	}
+
+	public void setSeed(int seed){
+		StatToolbox.setSeed(seed);
+	}	
 	
 	public void setNumCores(int num_cores){
 		this.num_cores = num_cores;

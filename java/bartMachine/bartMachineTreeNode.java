@@ -66,9 +66,9 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 	/** this caches the possible split values BY variable populated only if the <code>mem_cache_for_speed</code> feature is set to on */
 	private transient HashMap<Integer, TDoubleHashSetAndArray> possible_split_vals_by_attr;
 	/** this number of possible split variables at this node */
-	protected transient Integer padj;	
-	/** a shared pointer to an object that tabulates the counts of attributes being used in split points in this tree */
-	protected transient int[] attribute_split_counts;
+	protected transient Integer padj;
+	/** a tabulation of the counts of attributes being used in split points in this tree */
+	private int[] attribute_split_counts;
 
 	
 	public bartMachineTreeNode(){}	
@@ -82,7 +82,6 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 	public bartMachineTreeNode(bartMachineTreeNode parent, bartMachine_b_hyperparams bart){
 		this.parent = parent;
 		this.yhats = parent.yhats;
-		this.attribute_split_counts = parent.attribute_split_counts;
 		this.bart = bart;
 		
 		if (parent != null){
@@ -132,7 +131,6 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 		copy.indicies = indicies;
 		copy.n_eta = n_eta;
 		copy.yhats = yhats;
-		copy.attribute_split_counts = attribute_split_counts.clone();
 		
 		if (left != null){ //we need to clone the child and mark parent correctly
 			copy.left = left.clone();
@@ -631,8 +629,6 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 
 		//initialize the yhats
 		yhats = new double[n_eta];
-		//intialize the var counts
-		attribute_split_counts = new int[p];
 		//initialize sendMissing
 		sendMissingDataRight = pickRandomDirectionForMissingData();
 		
@@ -650,6 +646,29 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 			printNodeDebugInfo("updateYHatsWithPrediction");
 		}
 	}
+	
+	/**
+	 * A wrapper to find the attributes used
+	 * @return
+	 */
+	public int[] attributeSplitCounts() {
+		//if never run, build from scratch
+		if (attribute_split_counts == null){
+			attribute_split_counts = new int[bart.p];
+			attributeSplitCountsInner(attribute_split_counts);
+		}
+		//otherwise return cached copy
+		return attribute_split_counts;
+	}
+	
+	public void attributeSplitCountsInner(int[] counts) {
+		if (this.isLeaf){
+			return;
+		}
+		counts[this.splitAttributeM]++;
+		left.attributeSplitCountsInner(counts);
+		right.attributeSplitCountsInner(counts);
+	}	
 
 	/**
 	 * A wrapper to find all interactions recursively by checking all splits underneath this node
@@ -790,24 +809,6 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 			System.out.println("y_hat_vec: (size " + yhats.length + ") [" + Tools.StringJoin(bart.un_transform_y_and_round(yhats)) + "]");
 		}
 		System.out.println("-----------------------------------------\n\n\n");
-	}	
-	
-	/**
-	 * When counting the attributes used in this tree's split rules, decrement the following attribute
-	 * 
-	 * @param j		The attribute number (in the original traning data design matrix) to decrement in count
-	 */
-	public void decrement_variable_count(int j) {
-		attribute_split_counts[j]--;
-	}
-
-	/**
-	 * When counting the attributes used in this tree's split rules, increment the following attribute
-	 * 
-	 * @param j		The attribute number (in the original traning data design matrix) to increment in count
-	 */
-	public void increment_variable_count(int j) {
-		attribute_split_counts[j]++;		
 	}
 	
 	public bartMachineTreeNode getLeft() {
@@ -846,4 +847,5 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 	public void setSplitValue(double splitValue) {
 		this.splitValue = splitValue;
 	}
+
 }
