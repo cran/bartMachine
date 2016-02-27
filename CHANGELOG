@@ -1,3 +1,16 @@
+version 1.2.1
+
+* Error message for pathological case with missing data
+* Fix for datasets with missing data in some operating systems
+* Fix for error checking function (normality test)
+* Fix pd_plot function for missing data
+* Fix error for sigsq estimate when there are variables consisting entirely of missing data
+* More verbose messages for debugging intialization of bartMachine objects
+* Ability to pass in an estimate of sigsq. This is important since this step may take a lot of time for datasets with a large number of features
+* When creating partial dependence plots, there is now an option for proportion of data to use. The lower the proportion, the lower the resolution but the speedier the plot will generate.
+* When creating partial dependence plots, there is now less duplication in the calculations which results in faster plotting.
+* Decomped dependencies (the JARs) to package bartMachine JARs thanks to Kurt Hornik.
+
 version 1.2.0
 
 * A major memory leak was fixed. bartMachine objects are also generated about 5% faster. Variable importance
