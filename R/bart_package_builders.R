@@ -17,7 +17,7 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 		run_in_sample = TRUE,
 		s_sq_y = "mse", # "mse" or "var"
 		sig_sq_est = NULL, #you can pass this in to speed things up if you have an idea about what you want to use a priori
-#		print_tree_illustrations = FALSE, #this feature is deprecated, but we're leaving it in the code commented out for the intrepid user
+		#print_tree_illustrations = FALSE,
 		cov_prior_vec = NULL,
 		use_missing_data = FALSE,
 		covariates_to_permute = NULL, #PRIVATE
@@ -205,9 +205,9 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 		.jcall(java_bart_machine, "V", "writeStdOutToLogFile")
 	}
 	#set whether we want there to be tree illustrations
-#	if (print_tree_illustrations & verbose){
-#		cat("warning: we have disabled printing tree illustrations. If you need this feature, you can turn it on in the code by uncommenting the next line after this message.\n")
-##		.jcall(java_bart_machine, "V", "printTreeIllustations")
+#	if (print_tree_illustrations){
+#		cat("warning: printing tree illustrations is excruciatingly slow.\n")
+#		.jcall(java_bart_machine, "V", "printTreeIllustations")
 #	}
 	
 	#set the std deviation of y to use
@@ -498,7 +498,7 @@ bart_machine_duplicate = function(bart_machine, X = NULL, y = NULL, cov_prior_ve
 build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL, 
 		num_tree_cvs = c(50, 200),
 		k_cvs = c(2, 3, 5),
-		nu_q_cvs = list(c(3, 0.9), c(3, 0.99), c(10, 0.75)),
+		nu_q_cvs = NULL,
 		k_folds = 5, 
 		verbose = FALSE,
 		...){
@@ -526,7 +526,14 @@ build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL,
 	}
 	
 	if (pred_type == "classification"){
+		if (!is.null(nu_q_cvs)){
+			stop("For classification, \"nu_q_cvs\" must be set to NULL (the default).")
+		}
 		nu_q_cvs = list(c(3, 0.9)) #ensure we only do this once, the 3 and the 0.9 don't actually matter, they just need to be valid numbers for the hyperparameters
+	} else { #i.e. regression... 
+		if (is.null(nu_q_cvs)){ #set it equal to a good default if user didn't specify
+			nu_q_cvs = list(c(3, 0.9), c(3, 0.99), c(10, 0.75))
+		}
 	}
 	
 	min_rmse_num_tree = NULL
