@@ -1,5 +1,5 @@
 620df2449af59d2c5d88abdcd078c04c *CHANGELOG
-df20f9a4b66805884e3a1e184702a18c *DESCRIPTION
+c41d79ce1dcb3c2d2d57c63884d95155 *DESCRIPTION
 80dcb5b7bde9f9a72b01245560a2c315 *NAMESPACE
 393b191f17e798aab13e298c807fac77 *R/bartMachine.R
 c50dcb96c6c1308fc14a184cedb7c81b *R/bart_arrays.R
@@ -12,7 +12,7 @@ fd12ef87f08d1eef8b88b5574a1ad5a0 *R/bart_package_inits.R
 89f36726faec2235b96ef360267f640a *R/bart_package_predicts.R
 d6ef7c581209abef98b9d97e69139187 *R/bart_package_summaries.R
 9915721d05bcf5b0cd7410d44cd5c27c *R/bart_package_variable_selection.R
-a90ec847c4ca68026ff4ead6fa61e7d2 *R/zzz.R
+c4063abe832a79ef759f2bea677e3140 *R/zzz.R
 ef2ea7f07e797809579622f422b8cdc2 *build/vignette.rds
 42f5265744f87d8b04fe202e6b14a07c *data/automobile.RData
 fbd51bbb079b2f9463b4d333e0c4afbd *data/benchmark_datasets.RData
