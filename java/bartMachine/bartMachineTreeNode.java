@@ -17,8 +17,9 @@ import OpenSourceExtensions.UnorderedPair;
  * 
  * @author Adam Kapelner and Justin Bleich
  */
+@SuppressWarnings("serial")
 public class bartMachineTreeNode implements Cloneable, Serializable {
-	
+
 	/** Setting this to true will print out debug information at the node level during Gibbs sampling */
 	public static final boolean DEBUG_NODES = false;
 	
@@ -47,6 +48,8 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 	public boolean sendMissingDataRight;
 	/** if this is a leaf node, then the result of the prediction for regression, otherwise null */
 	public double y_pred = BAD_FLAG_double;
+//	/** debug only */
+//	public double y_avg = BAD_FLAG_double;
 	
 	/** the number of data points in this node */
 	public transient int n_eta;
@@ -54,7 +57,7 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 	public transient double[] yhats;
 
 	/** the indices in {0, 1, ..., n-1} of the data records in this node */
-	protected transient int[] indicies;	
+	protected int[] indicies; //not transient... so indices will be saved upon serialization
 	/** the y's in this node */
 	protected transient double[] responses;
 	/** the square of the sum of the responses, y */
@@ -70,8 +73,8 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 	/** a tabulation of the counts of attributes being used in split points in this tree */
 	private int[] attribute_split_counts;
 
+	public bartMachineTreeNode(){}
 	
-	public bartMachineTreeNode(){}	
 	
 	/**
 	 * Creates a new node
@@ -269,14 +272,17 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 	 * @return				The returned prediction from the terminal node that this tree structure maps the record to
 	 */
 	public double Evaluate(double[] record) {
+//		return EvaluateNode(record).y_avg;
+		return EvaluateNode(record).y_pred;
+	}
+	
+	public bartMachineTreeNode EvaluateNode(double[] record) {
 		bartMachineTreeNode evalNode = this;
 		while (true){
 			if (evalNode.isLeaf){
-				return evalNode.y_pred;
+				return evalNode;
 			}
 			//all split rules are less than or equals (this is merely a convention)
-			//it's a convention that makes sense - if X_.j is binary, and the split values can only be 0/1
-			//then it MUST be <= so both values can be considered
 			//handle missing data first
 			if (Classifier.isMissing(record[evalNode.splitAttributeM])){
 				evalNode = evalNode.sendMissingDataRight ? evalNode.right : evalNode.left;
@@ -293,7 +299,9 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 	/** Remove all the data in this node and its children recursively to save memory */
 	public void flushNodeData() {
 		yhats = null;
-		indicies = null;	
+		if (bart.flush_indices_to_save_ram) {
+			indicies = null;	
+		}
 		responses = null;
 		possible_rule_variables = null;
 		possible_split_vals_by_attr = null;

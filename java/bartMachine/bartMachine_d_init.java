@@ -7,6 +7,7 @@ import java.io.Serializable;
  * 
  * @author Adam Kapelner and Justin Bleich
  */
+@SuppressWarnings("serial")
 public abstract class bartMachine_d_init extends bartMachine_c_debug implements Serializable{
 
 	/** during debugging, we may want to fix sigsq */
@@ -21,7 +22,10 @@ public abstract class bartMachine_d_init extends bartMachine_c_debug implements 
 		InitGibbsSamplingData();	
 		InitizializeSigsq();
 		InitializeTrees();
-		InitializeMus();	
+		InitializeMus();
+		if (tree_illust){
+			InitTreeIllustrations();
+		}
 		//the zeroth gibbs sample is the initialization we just did; now we're onto the first in the chain
 		gibbs_sample_num = 1;
 		

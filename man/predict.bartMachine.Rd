@@ -8,7 +8,7 @@ Make a prediction on data using a BART object
 Makes a prediction on new data given a fitted BART model for regression or classification.
 }
 \usage{
-\method{predict}{bartMachine}(object, new_data, type, prob_rule_class, ...)
+\method{predict}{bartMachine}(object, new_data, type = "prob", prob_rule_class = NULL, verbose = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -28,6 +28,10 @@ Makes a prediction on new data given a fitted BART model for regression or class
   \item{prob_rule_class}{
 	The rule to determine when the class estimate is \eqn{Y = 1} (the ``positive'' class) based on the probability estimate. This
 	defaults to what was originally specified in the \code{bart_machine} object. 
+}
+  \item{verbose}{
+	Prints out prediction-related messages. Currently in use only for probability predictions to let the user know which class
+	is being predicted. Default is \code{TRUE}.
 }
   \item{...}{
 	Parameters that are ignored.
@@ -84,7 +88,3 @@ y_hat_class_conservative = predict(bart_machine, X, type = "class", prob_rule_cl
 
 
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

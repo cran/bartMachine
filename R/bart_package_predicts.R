@@ -1,5 +1,5 @@
 #S3 predict method
-predict.bartMachine = function(object, new_data, type = "prob", prob_rule_class = NULL, ...){
+predict.bartMachine = function(object, new_data, type = "prob", prob_rule_class = NULL, verbose = TRUE, ...){
 	check_serialization(object) #ensure the Java object exists and fire an error if not
 	
 	if(!(type %in% c("prob", "class"))){
@@ -10,6 +10,9 @@ predict.bartMachine = function(object, new_data, type = "prob", prob_rule_class 
 		bart_machine_get_posterior(object, new_data)$y_hat
 	} else { ##classification
 	    if (type == "prob"){
+			if (verbose == TRUE){
+				cat("predicting probabilities where \"", object$y_levels[1], "\" is considered the target level...\n", sep = "")
+			}			
 	    	bart_machine_get_posterior(object, new_data)$y_hat
 	    } else {
 	    	labels = bart_machine_get_posterior(object, new_data)$y_hat > ifelse(is.null(prob_rule_class), object$prob_rule_class, prob_rule_class)
@@ -41,11 +44,12 @@ bart_predict_for_test_data = function(bart_machine, Xtest, ytest, prob_rule_clas
 				e = ytest - ytest_hat
 		)
 	} else { ##classification list
-    if(class(ytest)!= "factor") stop("ytest must be a factor.")
-    if(!all(levels(ytest) %in% bart_machine$y_levels)) stop("New factor level not seen in training introduced. Please remove.")
-    ptest_hat = predict(bart_machine, Xtest, type = "prob")
-    ytest_labels = ptest_hat > ifelse(is.null(prob_rule_class), bart_machine$prob_rule_class, prob_rule_class)
-    ytest_hat = labels_to_y_levels(bart_machine, ytest_labels)
+	    if (class(ytest)!= "factor") stop("ytest must be a factor.")
+	    if (!all(levels(ytest) %in% bart_machine$y_levels)) stop("New factor level not seen in training introduced. Please remove.")
+		
+	    ptest_hat = predict(bart_machine, Xtest, type = "prob")
+	    ytest_labels = ptest_hat > ifelse(is.null(prob_rule_class), bart_machine$prob_rule_class, prob_rule_class)
+	    ytest_hat = labels_to_y_levels(bart_machine, ytest_labels)
     
 		confusion_matrix = as.data.frame(matrix(NA, nrow = 3, ncol = 3))
 		rownames(confusion_matrix) = c(paste("actual", bart_machine$y_levels), "use errors")
@@ -65,7 +69,7 @@ bart_predict_for_test_data = function(bart_machine, Xtest, ytest, prob_rule_clas
 bart_machine_get_posterior = function(bart_machine, new_data){	
 	check_serialization(bart_machine) #ensure the Java object exists and fire an error if not
 	
-	if (class(new_data) != "data.frame"){		
+	if (!"data.frame"%in%class(new_data)){		
 		stop("\"new_data\" needs to be a data frame with the same column names as the training data.")
 	}
 	if (!bart_machine$use_missing_data){
@@ -105,7 +109,7 @@ bart_machine_get_posterior = function(bart_machine, new_data){
 	}
 	
 	y_hat_posterior_samples = 
-		t(sapply(.jcall(bart_machine$java_bart_machine, "[[D", "getGibbsSamplesForPrediction", .jarray(new_data, dispatch = TRUE), as.integer(bart_machine_num_cores())), .jevalArray))
+		.jcall(bart_machine$java_bart_machine, "[[D", "getGibbsSamplesForPrediction", .jarray(new_data, dispatch = TRUE), as.integer(bart_machine_num_cores()), simplify = TRUE)
 	
 	#to get y_hat.. just take straight mean of posterior samples, alternatively, we can let java do it if we want more bells and whistles
 	y_hat = rowMeans(y_hat_posterior_samples)
@@ -125,7 +129,7 @@ calc_credible_intervals = function(bart_machine, new_data, ci_conf = 0.95){
 	ci_upper_bd = array(NA, n_test)	
 	
 	y_hat_posterior_samples = ##get samples
-			t(sapply(.jcall(bart_machine$java_bart_machine, "[[D", "getGibbsSamplesForPrediction",  .jarray(new_data, dispatch = TRUE), as.integer(bart_machine_num_cores())), .jevalArray))
+		.jcall(bart_machine$java_bart_machine, "[[D", "getGibbsSamplesForPrediction",  .jarray(new_data, dispatch = TRUE), as.integer(bart_machine_num_cores()), simplify = TRUE)
 	
 	#to get y_hat.. just take straight mean of posterior samples, alternatively, we can let java do it if we want more bells and whistles
 	y_hat = rowMeans(y_hat_posterior_samples)
@@ -154,7 +158,7 @@ calc_prediction_intervals = function(bart_machine, new_data, pi_conf = 0.95, num
 	pi_upper_bd = array(NA, n_test)	
 	
 	y_hat_posterior_samples = 
-			t(sapply(.jcall(bart_machine$java_bart_machine, "[[D", "getGibbsSamplesForPrediction",  .jarray(new_data, dispatch = TRUE), as.integer(bart_machine_num_cores())), .jevalArray))
+		.jcall(bart_machine$java_bart_machine, "[[D", "getGibbsSamplesForPrediction",  .jarray(new_data, dispatch = TRUE), as.integer(bart_machine_num_cores()), simplify = TRUE)
 	sigsqs = .jcall(bart_machine$java_bart_machine, "[D", "getGibbsSamplesSigsqs")
 	
 	

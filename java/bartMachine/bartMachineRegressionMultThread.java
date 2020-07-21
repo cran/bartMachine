@@ -18,6 +18,7 @@ import OpenSourceExtensions.UnorderedPair;
  * 
  * @author Adam Kapelner and Justin Bleich
  */
+@SuppressWarnings("serial")
 public class bartMachineRegressionMultThread extends Classifier implements Serializable {
 	
 	/** the number of CPU cores to build many different Gibbs chain within a BART model */
@@ -64,6 +65,9 @@ public class bartMachineRegressionMultThread extends Classifier implements Seria
 	 * @see Section 3.1 of Kapelner, A and Bleich, J. bartMachine: A Powerful Tool for Machine Learning in R. ArXiv e-prints, 2013
 	 */
 	protected boolean mem_cache_for_speed = true;
+	/** saves indices in nodes (useful for computing weights) */
+	protected boolean flush_indices_to_save_ram = true;
+	private boolean tree_illust;
 
 	
 	/** the default constructor sets the number of total iterations each Gibbs chain is charged with sampling */
@@ -121,6 +125,7 @@ public class bartMachineRegressionMultThread extends Classifier implements Seria
 		bart.setThreadNum(t);
 		bart.setTotalNumThreads(num_cores);
 		bart.setMemCacheForSpeed(mem_cache_for_speed);
+		bart.setFlushIndicesToSaveRAM(flush_indices_to_save_ram);
 		
 		//set features
 		if (cov_split_prior != null){
@@ -133,6 +138,7 @@ public class bartMachineRegressionMultThread extends Classifier implements Seria
 		}
 		//once the params are set, now you can set the data
 		bart.setData(X_y);
+		bart.tree_illust = tree_illust;
 		bart_gibbs_chain_threads[t] = bart;
 	}
 	
@@ -212,6 +218,73 @@ public class bartMachineRegressionMultThread extends Classifier implements Seria
 		try {	         
 	         bart_gibbs_chain_pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS); //effectively infinity
 	    } catch (InterruptedException ignored){}		
+	}
+
+	protected boolean[][][][] getNodePredictionTrainingIndicies(double[][] records){
+		if (records == null) {
+			records = new double[n][p];
+			for (int i = 0; i < n; i++) {
+				records[i] = X_y.get(i); //this will include y but it is never used in evaluation
+			}		 	
+		}
+		int n_star = records.length;
+		int num_samples_after_burn_in = numSamplesAfterBurning();
+		
+		boolean[][][][] node_prediction_training_indices = new boolean[n_star][num_samples_after_burn_in][num_trees][n];
+		
+		for (int i_star = 0; i_star < n_star; i_star++) {
+			for (int g = 0; g < num_samples_after_burn_in; g++){				
+				bartMachineTreeNode[] trees = gibbs_samples_of_bart_trees_after_burn_in[g];
+				for (int m = 0; m < num_trees; m++){					
+					for (int i : trees[m].EvaluateNode(records[i_star]).indicies) {
+						node_prediction_training_indices[i_star][g][m][i] = true;
+					}
+				}
+			}
+		}
+		return node_prediction_training_indices;
+	}
+	
+
+	protected double[][] getProjectionWeights(double[][] records){
+		if (records == null) {
+			records = new double[n][p];
+			for (int i = 0; i < n; i++) {
+				records[i] = X_y.get(i); //this will include y but it is never used in evaluation
+			}		 	
+		}
+		int n_star = records.length;
+		int num_samples_after_burn_in = numSamplesAfterBurning();
+		
+//		double[][] all_gibbs_samples = getGibbsSamplesForPrediction(records, 1);
+		
+		boolean[][][][] node_prediction_training_indices = getNodePredictionTrainingIndicies(records);
+		
+		double[][] sample_weights = new double[n_star][];
+		
+		for (int i_star = 0; i_star < n_star; i_star++) {
+//			double y_hat_i_star = StatToolbox.sample_average(all_gibbs_samples[i_star]);
+			double[] sample_weights_i_star = new double[n];
+			for (int g = 0; g < num_samples_after_burn_in; g++){
+//				bartMachineTreeNode[] trees = gibbs_samples_of_bart_trees_after_burn_in[g];
+
+				for (int m = 0; m < num_trees; m++){
+					boolean[] indicies_m_i_star = node_prediction_training_indices[i_star][g][m];
+					
+					int n_g_m = Tools.sum_array(indicies_m_i_star);
+					for (int i = 0; i < n; i++) {
+						sample_weights_i_star[i] += (indicies_m_i_star[i] ? 1 : 0) / ((double)n_g_m * num_trees);
+					}					
+				}
+			}
+			//we need to scale by 1 / G
+			for (int i = 0; i < n; i++) {
+				sample_weights_i_star[i] *= 1 / (double)num_samples_after_burn_in;
+			}
+			
+			sample_weights[i_star] = sample_weights_i_star;
+		}
+		return sample_weights;
 	}
 
 	/**
@@ -509,6 +582,11 @@ public class bartMachineRegressionMultThread extends Classifier implements Seria
 	 	p = X_y.get(0).length - 1;
 	}
 	
+	
+	public void printTreeIllustations(){
+		tree_illust = true;
+	}
+	
 	public void setCovSplitPrior(double[] cov_split_prior){
 		this.cov_split_prior = cov_split_prior;
 	}
@@ -568,6 +646,10 @@ public class bartMachineRegressionMultThread extends Classifier implements Seria
 	
 	public void setMemCacheForSpeed(boolean mem_cache_for_speed){
 		this.mem_cache_for_speed = mem_cache_for_speed;
+	}
+	
+	public void setFlushIndicesToSaveRAM(boolean flush_indices_to_save_ram) {
+		this.flush_indices_to_save_ram = flush_indices_to_save_ram;
 	}
 	
 	/** Must be implemented, but does nothing */

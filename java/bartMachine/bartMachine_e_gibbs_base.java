@@ -8,12 +8,13 @@ import java.io.Serializable;
  * 
  * @author Adam Kapelner and Justin Bleich
  */
+@SuppressWarnings("serial")
 public abstract class bartMachine_e_gibbs_base extends bartMachine_d_init implements Serializable{
 
 	/** Builds a BART model by unleashing the Gibbs sampler */
 	public void Build() {
 		SetupGibbsSampling();
-		DoGibbsSampling();	
+		DoGibbsSampling();
 	}	
 
 	/** Run the Gibbs sampler for the total number of samples prespecified while flushing unneeded memory from the previous sample */
@@ -44,7 +45,9 @@ public abstract class bartMachine_e_gibbs_base extends bartMachine_d_init implem
 		}
 		//now we have the last residual vector which we pass on to sample sigsq
 		SampleSigsq(gibbs_sample_num, getResidualsFromFullSumModel(gibbs_sample_num, R_j));
-//		DebugSample(gibbs_sample_num, tree_array_illustration);
+		if (tree_illust){
+			illustrate(tree_array_illustration);
+		}
 	}
 
 	/** Print a Gibbs sample debug message */
