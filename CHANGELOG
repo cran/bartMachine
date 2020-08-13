@@ -1,3 +1,8 @@
+v1.2.5.1
+* Downgraded Java to v7 for Solaris-x86 platform compatibility (a CRAN requirement). 
+* bartMachineJARs Java version was set to 5 (I checked all its JARs to make sure). No need to release an update there.
+* During building, when seed was set, set.seed in R is no longer called (a call to set.seed is unexpected for the user and should only be done by the user consciously). There was no reason to ever have this here as there is no randomness in the R code, only the Java code.
+
 v1.2.5
 * Major speedups to all places where data is passed from Java -> R
 * A function that provides the observations in each node for all post-burn-in nodes. 
