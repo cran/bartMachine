@@ -19,6 +19,7 @@ run_in_sample = TRUE,
 s_sq_y = "mse",
 sig_sq_est = NULL,
 cov_prior_vec = NULL, 
+interaction_constraints = NULL,
 use_missing_data = FALSE, 
 covariates_to_permute = NULL,
 num_rand_samps_in_library = 10000, 
@@ -44,6 +45,7 @@ run_in_sample = TRUE,
 s_sq_y = "mse",
 sig_sq_est = NULL,
 cov_prior_vec = NULL, 
+interaction_constraints = NULL,
 use_missing_data = FALSE, 
 covariates_to_permute = NULL,
 num_rand_samps_in_library = 10000, 
@@ -113,6 +115,14 @@ Pass in an estimate of the maximum sig_sq of the model. This is useful to cache 
   \item{cov_prior_vec}{
 Vector assigning relative weights to how often a particular variable should be proposed as a candidate for a split. The vector is internally normalized so that the weights sum to 1. Note that the length of this vector must equal the length of the design matrix after dummification and augmentation of indicators of missingness (if used). To see what the dummified matrix looks like, use \code{\link{dummify_data}}. See Bleich et al. (2013) for more details on when this feature is most appropriate. 
 }
+  \item{interaction_constraints}{
+A list of vectors indicating where the vectors are sets of elements allowed to interact with one another. The elements in each 
+vector correspond to features in the data frame \code{X} specified by either the column number as a numeric value or the column 
+name as a string e.g. \code{list(c(1, 2), c("nox", "rm"))}. The elements of the vectors can be reused among components for any 
+level of interaction complexity you wish. Default is \code{NULL} which corresponds to the vanilla modeling procedure where
+all interactions are legal. For a pure generalized added model, use \code{as.list(seq(1 : p))} where \code{p} 
+is the number of columns in the design matrix \code{X}.
+}
   \item{use_missing_data}{
 If TRUE, the missing data feature is used to automatically handle missing data without imputation. See Kapelner and Bleich (2013) for details. 
 }
@@ -148,7 +158,9 @@ R sessions if the object is saved and reloaded. Note that serialized objects can
 Thus, the default is \code{FALSE}.  
 }
   \item{seed}{
-Optional: sets the seed in both R and Java. Default is \code{NULL} which does not set the seed in R nor Java.  
+Optional: sets the seed in both R and Java. Default is \code{NULL} which does not set the seed in R nor Java. 
+Setting the seed enforces deterministic behavior only in the case when one core is used (the default before 
+\code{set_bart_machine_num_cores() was invoked}.
 }
   \item{verbose}{
 Prints information about progress of the algorithm to the screen. 

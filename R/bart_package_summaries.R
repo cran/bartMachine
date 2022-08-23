@@ -5,9 +5,13 @@ summary.bartMachine = function(object, ...){
 		cat("Missing data feature ON\n")
 	}
 	#first print out characteristics of the training data
-	cat(paste("training data n =", object$n, "and p =", object$p, "\n"))
+	if (!is.null(object$interaction_constraints)){
+		cat(paste0("number of specified covariate interactivity constraints = ", length(object$interaction_constraints), ".\ntraining data size: n = ", object$n, " and p = ", object$p, "\n"))
+	} else {
+		cat(paste("training data size: n =", object$n, "and p =", object$p, "\n"))
+	}	
 	
-  ##build time
+    ##build time
 	ttb = as.numeric(object$time_to_build, units = "secs")
 	if (ttb > 60){
 		ttb = as.numeric(object$time_to_build, units = "mins")
@@ -53,6 +57,4 @@ summary.bartMachine = function(object, ...){
 }
 
 #alias for summary
-print.bartMachine = function(x, ...){ #alias for summary
-	summary(x)
-}
+print.bartMachine = function(x, ...){summary(x)}

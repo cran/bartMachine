@@ -2,6 +2,7 @@ package bartMachine;
 
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.hash.TIntHashSet;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -41,15 +42,19 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 	/** is this node a terminal node? */
 	public boolean isLeaf;
 	/** the attribute this node makes a decision on */
-	public int splitAttributeM;
+	public int splitAttributeM = BAD_FLAG_int;
 	/** the value this node makes a decision on */
-	public double splitValue;
+	public double splitValue = BAD_FLAG_double;
 	/** send missing data to the right? */ 
 	public boolean sendMissingDataRight;
 	/** if this is a leaf node, then the result of the prediction for regression, otherwise null */
 	public double y_pred = BAD_FLAG_double;
-//	/** debug only */
-//	public double y_avg = BAD_FLAG_double;
+	/** the average of the node responses if applicable (for research purposes only) */
+	public double y_avg = BAD_FLAG_double;
+	/** the posterior variance in the conditional distribution if applicable (for research purposes only) */
+	public double posterior_var = BAD_FLAG_double;
+	/** the posterior mean in the conditional distribution if applicable (for research purposes only) */
+	public double posterior_mean = BAD_FLAG_double;
 	
 	/** the number of data points in this node */
 	public transient int n_eta;
@@ -503,9 +508,26 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 	 * @return		The list of predictors indexed by the columns in the design matrix
 	 */
 	private TIntArrayList tabulatePredictorsThatCouldBeUsedToSplitAtNode() {
+		TIntHashSet possible_rule_variables_contenders = null;
+		if (bart.mem_cache_for_speed && parent != null){
+			possible_rule_variables_contenders = new TIntHashSet();
+			//check interaction constraints first
+			int m = parent.splitAttributeM;
+			if (bart.interaction_constraints != null && bart.interaction_constraints.containsKey(m)) {
+				possible_rule_variables_contenders.add(m); //you should always be able to split on the same feature as above
+				possible_rule_variables_contenders.addAll(bart.interaction_constraints.get(m));
+			} else {
+				possible_rule_variables_contenders.addAll(parent.possible_rule_variables);
+			}
+					
+		}
+
 		TIntArrayList possible_rule_variables = new TIntArrayList();
-		
 		for (int j = 0; j < bart.p; j++){
+			if (possible_rule_variables_contenders != null && !possible_rule_variables_contenders.contains(j)) {
+				continue;
+			}
+			
 			//if size of unique of x_i > 1
 			double[] x_dot_j = bart.X_y_by_col.get(j);
 			
@@ -753,6 +775,10 @@ public class bartMachineTreeNode implements Cloneable, Serializable {
 			return this.parent.stringLocation(false) + "?";
 		}
 	}	
+	
+	public String stringLocation() {
+		return stringLocation(true);
+	}
 
 	/**
 	 * Prints debug information about this node, its parent and its immediate children

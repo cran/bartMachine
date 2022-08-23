@@ -44,8 +44,12 @@ bart_predict_for_test_data = function(bart_machine, Xtest, ytest, prob_rule_clas
 				e = ytest - ytest_hat
 		)
 	} else { ##classification list
-	    if (class(ytest)!= "factor") stop("ytest must be a factor.")
-	    if (!all(levels(ytest) %in% bart_machine$y_levels)) stop("New factor level not seen in training introduced. Please remove.")
+	    if (!inherits(ytest, "factor")){
+			stop("ytest must be a factor.")
+		}
+	    if (!all(levels(ytest) %in% bart_machine$y_levels)){
+			stop("New factor level not seen in training introduced. Please remove.")
+		}
 		
 	    ptest_hat = predict(bart_machine, Xtest, type = "prob")
 	    ytest_labels = ptest_hat > ifelse(is.null(prob_rule_class), bart_machine$prob_rule_class, prob_rule_class)
