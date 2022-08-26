@@ -24,11 +24,11 @@
 
 package bartMachine;
 
-import gnu.trove.list.array.TDoubleArrayList;
-import gnu.trove.list.array.TIntArrayList;
-
 import java.util.Arrays;
-import java.util.Random;
+
+import OpenSourceExtensions.MersenneTwisterFast;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 /**
  * This is a class where we're going to put all sorts of useful functions
@@ -37,7 +37,7 @@ import java.util.Random;
 public class StatToolbox {
 	
 	/** A convenience for a Random object */
-	private static final Random R = new Random();
+	private static final MersenneTwisterFast R = new MersenneTwisterFast();
 	/** A flag that indicates an illegal value or failed operation */
 	public static final double ILLEGAL_FLAG = -999999999;	
 
@@ -116,10 +116,10 @@ public class StatToolbox {
 	 * @param y	The vector of data values
 	 * @return	The sample average
 	 */
-	public static final double sample_average(TDoubleArrayList y){
+	public static final double sample_average(DoubleArrayList y){
 		double y_bar = 0;
 		for (int i = 0; i < y.size(); i++){
-			y_bar += y.get(i);
+			y_bar += y.getDouble(i);
 		}
 		return y_bar / (double)y.size();
 	}	
@@ -297,17 +297,17 @@ public class StatToolbox {
 	 * @param probs		The probabilities with which to sample the labels (must be the same length of the vals)
 	 * @return			The integer label of the value that was drawn from this multinomial distribution
 	 */
-	public static int multinomial_sample(TIntArrayList vals, double[] probs) {
+	public static int multinomial_sample(IntArrayList vals, double[] probs) {
 		double r = StatToolbox.rand();
 		double cum_prob = 0;
 		int index = 0;
 		if (r < probs[0]){
-			return vals.get(0);
+			return vals.getInt(0);
 		}
 		while (true){			
 			cum_prob += probs[index];
 			if (r > cum_prob && r < cum_prob + probs[index + 1]){
-				return vals.get(index + 1);
+				return vals.getInt(index + 1);
 			}
 			index++;
 		}
