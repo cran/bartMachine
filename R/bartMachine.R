@@ -13,7 +13,7 @@ bartMachine = function(X = NULL, y = NULL, Xy = NULL,
     run_in_sample = TRUE,
     s_sq_y = "mse", # "mse" or "var"
 	sig_sq_est = NULL,
-    #print_tree_illustrations = FALSE, #this feature is deprecated, but we're leaving it in the code commented out for the intrepid user
+    print_tree_illustrations = FALSE, #POWER USERS ONLY
     cov_prior_vec = NULL,
 	interaction_constraints = NULL,
     use_missing_data = FALSE,
@@ -36,11 +36,14 @@ bartMachineCV = function(X = NULL, y = NULL, Xy = NULL,
    num_tree_cvs = c(50, 200),
    k_cvs = c(2, 3, 5),
    nu_q_cvs = NULL,
-   k_folds = 5, verbose = FALSE, ...){
+   k_folds = 5, 
+   folds_vec = NULL,    
+   verbose = FALSE, ...){
   
   	build_bart_machine_cv(X, y, Xy, 
 	   num_tree_cvs,
 	   k_cvs,
 	   nu_q_cvs,
-	   k_folds, ...)
+	   k_folds, 
+	   folds_vec, ...)
 }

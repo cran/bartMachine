@@ -17,7 +17,7 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 		run_in_sample = TRUE,
 		s_sq_y = "mse", # "mse" or "var"
 		sig_sq_est = NULL, #you can pass this in to speed things up if you have an idea about what you want to use a priori
-#		print_tree_illustrations = FALSE, #only for power users who want to edit the code themselves
+		print_tree_illustrations = FALSE, #POWER USERS ONLY
 		cov_prior_vec = NULL,
 		interaction_constraints = NULL,
 		use_missing_data = FALSE,
@@ -243,10 +243,10 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 		.jcall(java_bart_machine, "V", "writeStdOutToLogFile")
 	}
 	#set whether we want there to be tree illustrations
-#	if (print_tree_illustrations){
-#		cat("warning: printing tree illustrations is excruciatingly slow.\n")
-#		.jcall(java_bart_machine, "V", "printTreeIllustations")
-#	}
+	if (print_tree_illustrations){
+		cat("warning: printing tree illustrations is excruciatingly slow.\n")
+		.jcall(java_bart_machine, "V", "printTreeIllustations")
+	}
 	
 	#set the std deviation of y to use
 	if (ncol(model_matrix_training_data) - 1 >= nrow(model_matrix_training_data)){
@@ -281,9 +281,9 @@ build_bart_machine = function(X = NULL, y = NULL, Xy = NULL,
 				stop("s_sq_y must be \"mse\" or \"var\"", call. = FALSE)
 			}
 			sig_sq_est = sig_sq_est * y_range^2		
-		}
-		if (verbose){
-			cat("bartMachine sigsq estimated...\n")
+			if (verbose){
+				cat("bartMachine sigsq estimated...\n") #only print for regression
+			}
 		}		
 	} else {
 		if (verbose){
@@ -560,6 +560,7 @@ build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL,
 		k_cvs = c(2, 3, 5),
 		nu_q_cvs = NULL,
 		k_folds = 5, 
+		folds_vec = NULL, 
 		verbose = FALSE,
 		...){
 	
@@ -574,6 +575,9 @@ build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL,
 		y = Xy$y
 		Xy$y = NULL
 		X = Xy
+	}	
+	if (!is.null(folds_vec) & !inherits(folds_vec, "integer")){
+		stop("folds_vec must be an a vector of integers specifying the indexes of each folds.")  
 	}
 	
 	y_levels = levels(y)
@@ -605,10 +609,24 @@ build_bart_machine_cv = function(X = NULL, y = NULL, Xy = NULL,
 	cv_stats = matrix(NA, nrow = length(k_cvs) * length(nu_q_cvs) * length(num_tree_cvs), ncol = 6)
 	colnames(cv_stats) = c("k", "nu", "q", "num_trees", "oos_error", "% diff with lowest")
 	
-  ##generate a single set of folds to keep using
-	temp = rnorm(length(y))
-	folds_vec = cut(temp, breaks = quantile(temp, seq(0, 1, length.out = k_folds + 1)), 
-	                include.lowest= T, labels = F)
+	#set up k folds
+	if (is.null(folds_vec)){ ##if folds were not pre-set:
+		n = nrow(X)
+	    if (k_folds == Inf){ #leave-one-out
+			k_folds = n
+	    }
+	  
+	    if (k_folds <= 1 || k_folds > n){
+			stop("The number of folds must be at least 2 and less than or equal to n, use \"Inf\" for leave one out")
+	    }
+	  
+	    temp = rnorm(n)
+	  
+	    folds_vec = cut(temp, breaks = quantile(temp, seq(0, 1, length.out = k_folds + 1)), 
+			  include.lowest= T, labels = FALSE)
+	  } else {
+		  k_folds = length(unique(folds_vec)) ##otherwise we know the folds, so just get k
+	  }
   
     #cross-validate
 	run_counter = 1
