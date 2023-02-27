@@ -1,7 +1,7 @@
-99bca587a97144ea54ae887ee24ea0bb *CHANGELOG
-2ab2c130bd251359a4ff35f2c81525d4 *DESCRIPTION
+1185517d41f2c0ceda2594ac7c2cb8d7 *CHANGELOG
+039a5e5ff213531ceb5ac6746b0ea7dd *DESCRIPTION
 52c9131fdd970d6f3673d8537659e82d *NAMESPACE
-7e3e744fda848ca78f359be27ef85cb1 *R/bartMachine.R
+e849ff3d3f0ed698781834a7e500986d *R/bartMachine.R
 c50dcb96c6c1308fc14a184cedb7c81b *R/bart_arrays.R
 663c69a0ecdb6a66df582908713d606a *R/bart_node_related_methods.R
 b687f4c1e4ef16e0d4749bb39cfe21c9 *R/bart_package_builders.R
@@ -14,13 +14,13 @@ a692d2f9e485ef7835ad8fcf7457f2e4 *R/bart_package_predicts.R
 53d2a7f673f72586fc0f8387148c80f8 *R/bart_package_summaries.R
 a82cb87617ab85031491f3c6ade51c78 *R/bart_package_variable_selection.R
 ca2c18c8c71a74eca48a2c54053265f1 *R/zzz.R
-1f2b12eb5cab678a6ed7119028118160 *build/vignette.rds
+e562a00175c5f3c8318f82ea2761dbe7 *build/vignette.rds
 42f5265744f87d8b04fe202e6b14a07c *data/automobile.RData
 fbd51bbb079b2f9463b4d333e0c4afbd *data/benchmark_datasets.RData
 a4b4f388f62f23602ac402e5ef7b5769 *inst/CITATION
 e521eaca0e3c585beb03125d96a2ad78 *inst/COPYRIGHTS
 13c0722a2d05acc287fafc7f89462a39 *inst/doc/bartMachine.Rnw
-deefa86b4a1755bbe085229f609d07df *inst/doc/bartMachine.pdf
+1a3f07725a6c59f204b7092042c1c7aa *inst/doc/bartMachine.pdf
 815a67253051cd0f67c60732274e039f *inst/java/bart_java.jar
 74494f57352aaff06320448a429fe4e9 *java/AlgorithmTesting/DataAnalysis.java
 2ba1c1e6b84606290a84ea68eeb0c0ec *java/AlgorithmTesting/DataSetupForCSVFile.java
