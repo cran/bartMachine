@@ -10,6 +10,9 @@ check_bart_error_assumptions = function(bart_machine, hetero_plot = "yhats"){
 		stop("There are no convergence diagnostics for classification.")
 	}	
 	graphics.off()
+	oldpar <- par(no.readonly = TRUE)   # code line i
+	on.exit(par(oldpar))            	# code line i + 1
+	
 	par(mfrow = c(2, 1))
 	es = bart_machine$residuals
 	y_hat = bart_machine$y_hat
@@ -381,7 +384,9 @@ investigate_var_importance = function(bart_machine, type = "splits", plot = TRUE
 ##user function calling private plotting methods
 plot_convergence_diagnostics = function(bart_machine, plots = c("sigsqs", "mh_acceptance", "num_nodes", "tree_depths")){
   check_serialization(bart_machine) #ensure the Java object exists and fire an error if not
-	
+  oldpar <- par(no.readonly = TRUE)   # code line i
+  on.exit(par(oldpar))            	# code line i + 1
+  
   if(length(plots) > 2){
     par(mfrow = c(2, 2))	  
 	} else if (length(plots) == 2){
@@ -404,7 +409,8 @@ plot_convergence_diagnostics = function(bart_machine, plots = c("sigsqs", "mh_ac
 	if ("tree_depths" %in% plots){
 	  plot_tree_depths(bart_machine)
 	}
-	
+	oldpar <- par(no.readonly = TRUE)   # code line i
+	on.exit(par(oldpar))            	# code line i + 1
 	par(mfrow = c(1, 1))
 }
 
@@ -453,10 +459,10 @@ interaction_investigator = function(bart_machine, plot = TRUE, num_replicates_fo
 	avg_counts = array(NA, n_interactions)
 	sd_counts = array(NA, n_interactions)
 	interaction_counts_avg_and_sd_long = data.frame(
-		var1 = character(rep(NA, n_interactions)),
-		var2 = character(rep(NA, n_interactions)),
-		avg_interaction = numeric(rep(NA, n_interactions)),
-		se_interaction = numeric(rep(NA, n_interactions))
+		var1 = as.character(rep(NA, n_interactions)),
+		var2 = as.character(rep(NA, n_interactions)),
+		avg_interaction = as.numeric(rep(NA, n_interactions)),
+		se_interaction = as.numeric(rep(NA, n_interactions))
 	)
 	iter = 1
 	for (i in 1 : bart_machine$p){
