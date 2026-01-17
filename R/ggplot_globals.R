@@ -1,0 +1,33 @@
+if (getRversion() >= "2.15.1") {
+	utils::globalVariables(
+		c(
+			"acceptance",
+			"actual",
+			"avg",
+			"core",
+			"depth",
+			"error",
+			"index",
+			"in_interval",
+			"iter",
+			"lower",
+			"num_nodes",
+			"num_trees",
+			"pointwise_cutoff",
+			"pointwise_selected",
+			"prop",
+			"residual",
+			"rmse",
+			"simul_marker",
+			"simul_threshold",
+			"sigsq",
+			"theoretical",
+			"tree",
+			"upper",
+			"value",
+			"var_est",
+			"variable",
+			"x"
+		)
+	)
+}

@@ -1,0 +1,13 @@
+"dataset","model","task","train_time_mean","train_time_sd","pred_time_mean","pred_time_sd","total_time_mean","total_time_sd","accuracy_mean","accuracy_sd","n"
+"Friedman_Reg","bartMachine","regression",4.45684838294983,NA,0.140299797058105,NA,4.59714818000793,NA,1.38602382644135,NA,1
+"Friedman_Reg","BART","regression",5.52240037918091,NA,0,NA,5.52240037918091,NA,1.41826780571621,NA,1
+"Friedman_Reg","dbarts","regression",2.44552183151245,NA,0,NA,2.44552183151245,NA,1.41907434738253,NA,1
+"Friedman_Class","bartMachine","classification",4.12443065643311,NA,0.0556809902191162,NA,4.18011164665222,NA,0.15,NA,1
+"Friedman_Class","BART","classification",5.36608672142029,NA,0,NA,5.36608672142029,NA,0.17,NA,1
+"Friedman_Class","dbarts","classification",2.01955795288086,NA,0,NA,2.01955795288086,NA,0.17,NA,1
+"BostonHousing","bartMachine","regression",3.52158403396606,NA,0.126138687133789,NA,3.64772272109985,NA,3.48891385866565,NA,1
+"BostonHousing","BART","regression",4.92860674858093,NA,0,NA,4.92860674858093,NA,3.39008013981651,NA,1
+"BostonHousing","dbarts","regression",2.14470934867859,NA,0,NA,2.14470934867859,NA,3.36365076489644,NA,1
+"PimaIndiansDiabetes","bartMachine","classification",5.51515245437622,NA,0.0244588851928711,NA,5.53961133956909,NA,0.597402597402597,NA,1
+"PimaIndiansDiabetes","BART","classification",6.14960336685181,NA,0,NA,6.14960336685181,NA,0.253246753246753,NA,1
+"PimaIndiansDiabetes","dbarts","classification",2.7454137802124,NA,0,NA,2.7454137802124,NA,0.246753246753247,NA,1
