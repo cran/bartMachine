@@ -1,5 +1,5 @@
-4b70c2ae12f31c0fa376e52b2844e684 *CHANGELOG
-caa57e08500713e593d72720947cbcda *DESCRIPTION
+dd72a68605379c6837860cd62db7e83c *CHANGELOG
+d7ee1ce83d029cc8644468b6ee75f413 *DESCRIPTION
 2409d45a1dc3fb0d84588e0530b06497 *NAMESPACE
 2f5493600adaeb9dc7e51606b4c5d250 *R/bartMachine-package.R
 8793c06dac0159c40422dbb7387c2be9 *R/bartMachine.R
@@ -31,8 +31,8 @@ a37715fa1850666395b9f01241d3602a *inst/benchmarks/bart_packages_comparisons_resu
 ea6086a2ca0900a553e578e1de1bec86 *inst/benchmarks/benchmark_registry.R
 88a4df6fd9dca8a9697984418b6796a3 *inst/benchmarks/run_benchmark_suite.R
 868063fdeda28e1924d8349f182fa4dd *inst/doc/bartMachine.Rnw
-f490876daa1ea47805e758c06e365356 *inst/doc/bartMachine.pdf
-e6f414bb118945c93fafb8776072dd0c *inst/java/bart_java.jar
+06101f8101e7f95b4070bd359c600b63 *inst/doc/bartMachine.pdf
+4679ecf309d1c3950e12572b0ffe5f03 *inst/java/bart_java.jar
 529b77f75e59e55705c1b2243f197661 *inst/scripts/bartmachine_ggplot_tests.pdf
 eb6cc9f42754961e00b3db38add84258 *inst/scripts/test_ggplot_functions.R
 2e635169feeb9d20542ac2ed6ac623ea *java/AlgorithmTesting/DataAnalysis.java

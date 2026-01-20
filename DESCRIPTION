@@ -1,8 +1,8 @@
 Package: bartMachine
 Type: Package
 Title: Bayesian Additive Regression Trees
-Version: 1.4.1
-Date: 2026-01-12
+Version: 1.4.1.1
+Date: 2026-01-19
 Maintainer: Adam Kapelner <kapelner@qc.cuny.edu>
 Authors@R: c(person(given = "Adam",
                   family = "Kapelner",
@@ -24,9 +24,9 @@ BugReports: https://github.com/kapelner/bartMachine/issues
 RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2026-01-18 05:48:30 UTC; kapelner
+Packaged: 2026-01-20 02:37:32 UTC; kapelner
 Author: Adam Kapelner [aut, cre] (ORCID:
     <https://orcid.org/0000-0001-5985-6792>),
   Justin Bleich [aut]
 Repository: CRAN
-Date/Publication: 2026-01-19 06:50:41 UTC
+Date/Publication: 2026-01-20 12:20:09 UTC
